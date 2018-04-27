@@ -1,33 +1,27 @@
-var express = require('express'); 
-var app = express(); 
-var router = express.Router(); 
-var bodyParser = require('body-parser'); 
-var cors = require('cors');
-  
-var bears = [
-    { id: '1', name: 'Ple' },
-    { id: '2', name: 'Tum' }
-]; 
-var last_bear_id = 3;
-  
-router.route('/bears') 
-    .get(function(req, res) {
-        res.send(bears);
-    })
-    .post(function(req, res) { 
-        var bear = {}; 
-        bear.name = req.body.name; 
-        bear.id = "" + (last_bear_id++);
-        bears.push(bear); 
-        res.json({ message: 'Bear created!' }); 
-    })
-router.route('/bears/:id')
-    .delete(function(req, res){
-        bears = bears.filter(b => b.id !== req.params.id)
-        res.json({ message: 'Bear deleted!' }); 
-    }) 
+import axios from 'axios';
+export function fetchBear(){
+    return (dispatch) => {
+      axios.get('http://localhost:8000/api/bears')
+      .then(result => {
+        dispatch({type: 'FETCH_BEAR', payload: result.data})
+      })
+    }
+}
 
-app.use(cors());
-// all of our routes will be prefixed with /api 
-app.use('/api', bodyParser.json(), router); 
-app.listen(8000);
+export function deleteBear(id) {
+    return (dispatch) => {
+        axios.delete(`http://localhost:8000/api/bears/${id}`)
+        .then(() => {
+            dispatch(fetchBear())
+        })
+    }
+}
+
+export function createBear(bear) {
+    return (dispatch) => {
+        axios.post(`http://localhost:8000/api/bears`, bear)
+        .then(() => {
+            dispatch(fetchBear())
+        })
+    }
+}
